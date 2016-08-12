@@ -37,13 +37,20 @@ module RuboClaus
     return true if lhs == :any
     return true if lhs == rhs
     return true if lhs == rhs.class
+    return true if deep_match?(lhs, rhs)
     false
+  end
+
+  private def deep_match?(lhs, rhs)
+    return false unless [lhs, rhs].all? { |side| side.is_a? Array }
+    lhs.zip(rhs) { |array| return false unless single_match?(*array) }
+    true
   end
 
   private def match?(lhs, rhs)
     return true if lhs.is_a?(RuboClaus::CatchAll)
     return false if lhs.args.length != rhs.length
-    lhs.args.zip(rhs) { |array| return false unless single_match?(*array) }
+    return false unless deep_match?(lhs.args, rhs)
     true
   end
 end
