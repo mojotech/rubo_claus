@@ -1,5 +1,12 @@
 require 'minitest/autorun'
 require 'rubo_claus'
+require 'rubo_claus/version'
+
+class RuboClausTest < Minitest::Test
+  def test_has_version_number
+    refute_nil RuboClaus::VERSION
+  end
+end
 
 class MyClass
   include RuboClaus
