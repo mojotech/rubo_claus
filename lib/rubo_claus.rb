@@ -2,20 +2,21 @@ module RuboClaus
   Clause = Struct.new(:args, :function)
   CatchAll = Struct.new(:proc)
 
+  class NoPatternMatchError < NoMethodError; end
+
   module ClassMethods
     def define_function(symbol, &block)
       @function_name = symbol
       block.call
     end
 
-    def clauses(*clauses)
+    def clauses(*klauses)
       define_method(@function_name) do |*runtime_args|
-        this_function = clauses.find do |pattern|
-          match(pattern, runtime_args)
-        end
-        return this_function.function.call(*runtime_args) if this_function.is_a?(RuboClaus::Clause)
-        return clauses[-1].proc.call if clauses[-1].proc
-        raise NoMethodError
+        this_function = klauses.find { |pattern| match(pattern, runtime_args) }
+
+        return this_function.function.call(*runtime_args) if this_function.is_a?(Clause)
+        return klauses[-1].proc.call if klauses[-1].is_a?(CatchAll)
+        raise NoPatternMatchError
       end
     end
 
@@ -23,8 +24,8 @@ module RuboClaus
       Clause.new(args, function)
     end
 
-    def catch_all(proc)
-      CatchAll.new(proc)
+    def catch_all(_proc)
+      CatchAll.new(_proc)
     end
   end
 
@@ -42,10 +43,7 @@ module RuboClaus
   private def match(lhs, rhs)
     return true if lhs.is_a?(RuboClaus::CatchAll)
     return false if lhs.args.length != rhs.length
-    lhs.args.all? do |lhs_arg|
-      rhs.all? do |rhs_arg|
-        single_match(lhs_arg, rhs_arg)
-      end
-    end
+    lhs.args.zip(rhs) { |array| return false unless single_match(array[0], array[1]) }
+    true
   end
 end
