@@ -43,10 +43,7 @@ module RuboClaus
   private def match(lhs, rhs)
     return true if lhs.is_a?(RuboClaus::CatchAll)
     return false if lhs.args.length != rhs.length
-    lhs.args.all? do |lhs_arg|
-      rhs.all? do |rhs_arg|
-        single_match(lhs_arg, rhs_arg)
-      end
-    end
+    lhs.args.zip(rhs) { |array| return false unless single_match(array[0], array[1]) }
+    true
   end
 end
