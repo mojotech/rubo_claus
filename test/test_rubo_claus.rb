@@ -35,13 +35,13 @@ class MyClass
     )
   end
 
-  define_function :array_string do
+  define_function :print_string_in_array do
     clauses(
       clause([1, [:any, [String]], Fixnum], proc { |n, n1, n2| "#{n1[1][0]}" })
     )
   end
 
-  define_function :array_nested do
+  define_function :integer_in_nested_array do
     clauses(
       clause([Fixnum, 2, [[[[[Fixnum]]]]]], proc { |n, n1, n2| n2[0][0][0][0][0] })
     )
@@ -121,32 +121,34 @@ class MyClassTest < Minitest::Test
   def test_nested_array_with_shape
     k = MyClass.new
 
-    assert_equal "Inner string", k.array_string(1, [1, ["Inner string"]], 3)
+    assert_equal "Inner string", k.print_string_in_array(1, [1, ["Inner string"]], 3)
 
     assert_raises RuboClaus::NoPatternMatchError do
-      k.array_string(3, [1, "Inner string"], 3)
+      k.print_string_in_array(3, [1, "Inner string"], 3)
     end
 
     assert_raises RuboClaus::NoPatternMatchError do
-      k.array_string(3, [1, "Inner string"], "S")
+      k.print_string_in_array(3, [1, "Inner string"], "S")
     end
 
     assert_raises RuboClaus::NoPatternMatchError do
-      k.array_string(3, [1, []], "S")
+      k.print_string_in_array(3, [1, []], "S")
     end
 
     assert_raises RuboClaus::NoPatternMatchError do
-      k.array_string(3, [[]], "S")
+      k.print_string_in_array(3, [[]], "S")
     end
   end
 
   def test_nested_array
     k = MyClass.new
 
-    assert_equal 3, k.array_nested(1, 2, [[[[[3]]]]])
+    assert_equal 3, k.integer_in_nested_array(1, 2, [[[[[3]]]]])
 
     assert_raises RuboClaus::NoPatternMatchError do
-      k.array_nested(1, 2, [[[[["Dog"]]]]])
+      k.integer_in_nested_array(1, 2, [[[[["Dog"]]]]])
+    end
+  end
 
   def test_hash
     k = MyClass.new
