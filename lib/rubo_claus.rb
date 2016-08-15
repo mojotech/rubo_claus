@@ -1,4 +1,7 @@
+require 'match'
+
 module RuboClaus
+  include Match
   Clause = Struct.new(:args, :function)
   CatchAll = Struct.new(:proc)
 
@@ -12,11 +15,8 @@ module RuboClaus
 
     def clauses(*klauses)
       define_method(@function_name) do |*runtime_args|
-        this_function = klauses.find { |pattern| match?(pattern, runtime_args) }
-
-        return this_function.function.call(*runtime_args) if this_function.is_a?(Clause)
-        return klauses[-1].proc.call if klauses[-1].is_a?(CatchAll)
-        raise NoPatternMatchError
+        matching_function = find_matching_function(klauses, runtime_args)
+        matching_function ? matching_function.call(*runtime_args) : raise(NoPatternMatchError)
       end
     end
 
@@ -29,21 +29,13 @@ module RuboClaus
     end
   end
 
+  private def find_matching_function(klauses, runtime_args)
+    clause = klauses.find { |pattern| match?(pattern, runtime_args) }
+    return clause.function if clause.is_a?(Clause)
+    return clause.proc if clause.is_a?(CatchAll)
+  end
+
   def self.included(klass)
     klass.extend ClassMethods
-  end
-
-  private def single_match?(lhs, rhs)
-    return true if lhs == :any
-    return true if lhs == rhs
-    return true if lhs == rhs.class
-    false
-  end
-
-  private def match?(lhs, rhs)
-    return true if lhs.is_a?(RuboClaus::CatchAll)
-    return false if lhs.args.length != rhs.length
-    lhs.args.zip(rhs) { |array| return false unless single_match?(*array) }
-    true
   end
 end
