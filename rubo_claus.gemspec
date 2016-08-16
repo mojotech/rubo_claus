@@ -16,4 +16,5 @@ Gem::Specification.new do |s|
   s.license 			= 'MIT'
 
   s.add_development_dependency 'rake', '~> 0'
+  s.required_ruby_version = '>= 2.1'
 end
