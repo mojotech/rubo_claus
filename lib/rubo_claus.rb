@@ -16,7 +16,7 @@ module RuboClaus
     def clauses(*klauses)
       define_method(@function_name) do |*runtime_args|
         if matching_function = find_matching_function(klauses, runtime_args)
-          matching_function.call(*runtime_args)
+          instance_exec *runtime_args, &matching_function
         else
           raise NoPatternMatchError, "no pattern defined for: #{runtime_args}"
         end

@@ -35,7 +35,7 @@ class MyClass
     clauses(
       clause([0], proc { 0 }),
       clause([1], proc { 1 }),
-      clause([Fixnum], proc { |num| new.fib(num-1) + new.fib(num-2) })
+      clause([Fixnum], proc { |num| fib(num-1) + fib(num-2) })
     )
   end
 end
