@@ -14,6 +14,9 @@ Gem::Specification.new do |s|
   s.test_files    = s.files.grep(%r{^(test|spec|features)/})
   s.require_paths = ["lib"]
   s.license 			= 'MIT'
+  s.homepage      = 'http://mojotech.github.io/rubo_claus/'
 
   s.add_development_dependency 'rake', '~> 0'
+  s.add_development_dependency 'minitest', '>= 5.9'
+  s.required_ruby_version = '>= 2.1'
 end
