@@ -7,6 +7,14 @@ class RunLengthEncoder
     encoder str.split(//), ''
   end
 
+  def decode(str)
+    groupings = str.scan(/\d+[A-Z]/).flatten
+    groupings.reduce("") do |acc, char|
+      _a, count, letter = char.partition(/\d+/)
+      acc + format_string(count.to_i, letter)
+    end
+  end
+
   define_function :encoder do
     clauses(
       clause([[], String], proc { |_arr, encoded| encoded }),
@@ -21,6 +29,13 @@ class RunLengthEncoder
           encoder(t, encoded + "#{count}#{h}")
         end
       end)
+    )
+  end
+
+  define_function :format_string do
+    clauses(
+      clause([1, String], proc { |_cnt, str| str }),
+      clause([Fixnum, String], proc { |cnt, str| str * cnt })
     )
   end
 end
