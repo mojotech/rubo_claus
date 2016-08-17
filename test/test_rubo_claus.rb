@@ -38,6 +38,22 @@ class MyClass
       clause([Fixnum], proc { |num| fib(num-1) + fib(num-2) })
     )
   end
+
+  define_function :friend_hash_des do
+    clauses(
+      clause([{friend: String}], proc { |n| "I know everything about #{n[:friend]}" })
+    )
+  end
+
+  define_function :night_emergency_phone do
+    param_shape = {username: String, friends: Array, phone: {fax: :any, mobile: String, emergency: {day: String, night: String}}}
+
+    clauses(
+      clause([param_shape], proc do |data|
+               data[:phone][:emergency][:night]
+             end)
+    )
+  end
 end
 
 class MyClassTest < Minitest::Test
@@ -73,5 +89,27 @@ class MyClassTest < Minitest::Test
     assert_equal 1, k.fib(2)
     assert_equal 2, k.fib(3)
     assert_equal 3, k.fib(4)
+  end
+
+  def test_shallow_hash_destructuring
+    k = MyClass.new
+
+    assert_equal "I know everything about John", k.friend_hash_des({friend: "John", foe: 3})
+
+    assert_raises RuboClaus::NoPatternMatchError do
+      k.friend_hash_des({})
+    end
+  end
+
+  def test_compound_data_destructuring
+    k = MyClass.new
+
+    param = {username: "Sally Moe", friends: [], phone: {fax: "NA", mobile: "123-345-1232", emergency: {day: "123-123-1234", night: "999-999-9999", weekend: '123-123-1233'}}}
+    assert_equal "999-999-9999", k.night_emergency_phone(param)
+
+    assert_raises RuboClaus::NoPatternMatchError do
+      param = {username: "Sally Moe", friends: "", phone: {fax: "NA", mobile: "123-345-1232", emergency: [{day: "123-123-1234", night: "999-999-9999"}]}}
+      k.night_emergency_phone(param)
+    end
   end
 end
