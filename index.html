@@ -11,7 +11,7 @@
   </head>
   <body>
     <section class="page-header">
-      <h1 class="project-name">RuboClaus</h1><img src='images/santaicon.png'>
+      <h1 class="project-name">RuboClaus</h1>
       <h2 class="project-tagline">Ruby method pattern matching inspired by functional programming with Elixir and Erlang</h2>
       <a href="https://github.com/mojotech/rubo_claus" class="btn">View on GitHub</a>
       <a href="https://github.com/mojotech/rubo_claus/zipball/master" class="btn">Download .zip</a>
@@ -19,18 +19,135 @@
     </section>
 
     <section class="main-content">
-      <h3>
-<a id="welcome" class="anchor" href="#welcome" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Welcome</h3>
+      <h1>
+<a id="ruboclaus" class="anchor" href="#ruboclaus" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>RuboClaus</h1>
 
-<p>RuboClaus is a pattern matching gem. More information will be added here soon. </p>
+<p>RuboClaus is an open source project that gives the Ruby developer a DSL to implement functions with multiple clauses and varying numbers of arguments on a pattern matching paradigm, inspired by functional programming in Elixir and Erlang.</p>
+
+<h4>
+<a id="note" class="anchor" href="#note" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Note</h4>
+
+<p><em>RuboClaus is still in very early stage of development and thought process.  We are still treating this as a proof-of-concept and are still exploring the topic.  As such, we don't suggest you use this in any kind of production environment, without first looking at the library code and feeling comfortable with how it works.  And, if you would like to continue this thought experiment and provide feedback/suggestions/changes, we would love to hear it.</em></p>
 
 <h3>
-<a id="core-contributors" class="anchor" href="#core-contributors" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Core Contributors</h3>
+<a id="rationale" class="anchor" href="#rationale" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Rationale</h3>
 
-<p>Omid Bachari (<a href="https://github.com/omidbachari" class="user-mention">@omidbachari</a>), Craig P Jolicoeur (<a href="https://github.com/cpjolicoeur" class="user-mention">@cpjolicoeur</a>)</p>
+<p>The beauty of multiple function clauses with pattern matching is fewer conditionals and fewer lines of unnecessary defensive logic. Focus on the happy path. Control types as they come in, and handle for edge cases with catch all clauses.</p>
+
+<p>Ruby:</p>
+
+<div class="highlight highlight-source-ruby"><pre><span class="pl-k">def</span> <span class="pl-en">add</span>(<span class="pl-smi">first</span>, <span class="pl-smi">second</span>)
+  <span class="pl-k">return</span> <span class="pl-s"><span class="pl-pds">"</span>Please use numbers<span class="pl-pds">"</span></span> <span class="pl-k">unless</span> [first, second].all? { |<span class="pl-smi">obj</span>| obj.is_a? <span class="pl-c1">Fixnum</span> }
+  first <span class="pl-k">+</span> second
+<span class="pl-k">end</span></pre></div>
+
+<p>Ruby With RuboClaus:</p>
+
+<div class="highlight highlight-source-ruby"><pre>define_function <span class="pl-c1">:add</span> <span class="pl-k">do</span>
+  clauses(
+    clause([<span class="pl-c1">Fixnum</span>, <span class="pl-c1">Fixnum</span>], proc <span class="pl-k">do </span>|<span class="pl-smi">first</span>, <span class="pl-smi">second</span>|
+      first <span class="pl-k">+</span> second
+    <span class="pl-k">end</span>), <span class="pl-c"># This clause controls type and arity so that you can focus on elegant logic.</span>
+    catch_all(proc { <span class="pl-s"><span class="pl-pds">"</span>Please use numbers<span class="pl-pds">"</span></span> }
+  )
+<span class="pl-k">end</span></pre></div>
+
+<p>You may think that this is cumbersome at first. But as soon as we add some complexity to the method, we can see how RuboClaus makes our code more extendible and maintainable.</p>
+
+<h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>Below are the public API methods and their associated arguments.</p>
+
+<ul>
+<li>
+<code>define_function</code>
+
+<ul>
+<li>Symbol - name of the method to define</li>
+<li>Block - a single block with a <code>clauses</code> method call</li>
+</ul>
+</li>
+<li>
+<code>clauses</code>
+
+<ul>
+<li>N number of <code>clause</code> method calls and/or a single <code>catch_all</code> method call</li>
+</ul>
+</li>
+<li>
+<code>clause</code>
+
+<ul>
+<li>Array - list of arguments to pattern match against</li>
+<li>Proc - method body to execute when this method is matched and executed</li>
+</ul>
+</li>
+<li>
+<code>catch_all</code>
+
+<ul>
+<li>Proc - method body that will be executed if the arguments do not match any of the <code>clause</code> patterns defined</li>
+</ul>
+</li>
+</ul>
+
+<h3>
+<a id="clause-pattern-arguments" class="anchor" href="#clause-pattern-arguments" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Clause pattern arguments</h3>
+
+<p>The first argument to the <code>clause</code> method is an array of pattern match options.  This array can vary in length, and values depending on your pattern match case.</p>
+
+<p>You can match against specific values:</p>
+
+<div class="highlight highlight-source-ruby"><pre>clause([<span class="pl-s"><span class="pl-pds">"</span>foo<span class="pl-pds">"</span></span>], proc {...})
+clause([<span class="pl-c1">42</span>], proc {...})
+clause([<span class="pl-s"><span class="pl-pds">"</span>Hello<span class="pl-pds">"</span></span>, <span class="pl-c1">:darth_vader</span>], proc {...})</pre></div>
+
+<p>You can match against specifc argument types:</p>
+
+<div class="highlight highlight-source-ruby"><pre>clause([<span class="pl-c1">String</span>], proc {...})
+clause([<span class="pl-c1">Fixnum</span>], proc {...})
+clause([<span class="pl-c1">String</span>, <span class="pl-c1">Symbol</span>], proc {...})</pre></div>
+
+<p>You can match against specific values and types:</p>
+
+<div class="highlight highlight-source-ruby"><pre>clause([<span class="pl-s"><span class="pl-pds">"</span>Hello<span class="pl-pds">"</span></span>, <span class="pl-c1">String</span>], proc {...})
+clause([<span class="pl-c1">42</span>, <span class="pl-c1">Fixnum</span>], proc {...})
+clause([<span class="pl-c1">String</span>, <span class="pl-c1">:darth_vader</span>], proc {...})</pre></div>
+
+<p>You also can match against any value or type if you don't have a specific requirement for an argument by using the <code>:any</code> symbol.</p>
+
+<div class="highlight highlight-source-ruby"><pre>clause([<span class="pl-s"><span class="pl-pds">"</span>Hello<span class="pl-pds">"</span></span>, <span class="pl-c1">:any</span>], proc {...})
+clause([<span class="pl-c1">:any</span>], proc {...})
+clause([<span class="pl-c1">42</span>, <span class="pl-c1">:any</span>], proc {...})</pre></div>
+
+<h3>
+<a id="examples" class="anchor" href="#examples" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Examples</h3>
+
+<p>Please see the <a href="https://github.com/mojotech/rubo_claus/tree/master/examples">examples directory</a> for various example use cases.  Most examples include direct comparisons of the Ruby code to a similar implementation in Elixir.</p>
+
+<h2>
+<a id="development" class="anchor" href="#development" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Development</h2>
+
+<p>Don't introduce unneeded external dependencies.</p>
+
+<p>Nothing else special to note for development.  Just add tests associated to any code changes and make sure they pass.</p>
+
+<h2>
+<a id="todo" class="anchor" href="#todo" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TODO</h2>
+
+<p>[ ] Rename public API methods? <code>define_function</code> is awkward since Ruby uses the term <code>method</code> instead of <code>function</code>
+[ ] Add Benchmarks to see performance implications</p>
+
+<hr>
+
+<p><a href="https://travis-ci.org/mojotech/rubo_claus"><img src="https://travis-ci.org/mojotech/rubo_claus.svg?branch=master" alt="Build Status"></a>
+<a href="https://github.com/dwyl/esta/issues"><img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat" alt="contributions welcome"></a></p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/mojotech/rubo_claus">RuboClaus</a> is maintained by <a href="https://github.com/mojotech">mojotech</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
       </footer>
 
     </section>
