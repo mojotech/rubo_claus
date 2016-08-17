@@ -35,7 +35,7 @@ class MyClassTest < Minitest::Test
     assert match?(lhs, rhs)
   end
 
-  def test_array_matching
+  def test_array_matching_2
     lhs = Clause.new([1, [[:any, [1]], Hash, 2], 3], '')
     rhs = [1, [[2, [1]], {people: ['Tom', 'Mary']}, 2], 3]
     rhs_fail = [1, [[2, [77]], {people: ['Tom', 'Mary']}, 2], 3]
