@@ -99,8 +99,9 @@ Nothing else special to note for development.  Just add tests associated to any 
 
 ## TODO
 
-[ ] Rename public API methods? `define_function` is awkward since Ruby uses the term `method` instead of `function`
-[ ] Add Benchmarks to see performance implications
+- [ ] Rename public API methods? `define_function` is awkward since Ruby uses the term `method` instead of `function`
+- [ ] Add Benchmarks to see performance implications
+- [ ] Support private clauses to enforce a single entry point to a defined function
 
 ---
 
