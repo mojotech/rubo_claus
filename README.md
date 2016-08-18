@@ -45,6 +45,9 @@ Below are the public API methods and their associated arguments.
 	* N number of `clause` method calls and/or a single `catch_all` method call
 * `clause`
 	* Array - list of arguments to pattern match against
+      * Keywords:
+        * `:any` - among your arguments, `:any` represents that any data type will be accepted in its position.
+        * `:tail` - given an array argument with defined "head" elements and `:tail` as the last element (such as `[String, String, :tail]`), this will destructure the head elements and make the tail an array of the non-head elements.
 	* Proc - method body to execute when this method is matched and executed
 * `catch_all`
 	* Proc - method body that will be executed if the arguments do not match any of the `clause` patterns defined
@@ -83,6 +86,13 @@ You also can match against any value or type if you don't have a specific requir
 clause(["Hello", :any], proc {...})
 clause([:any], proc {...})
 clause([42, :any], proc {...})
+```
+
+You also can destructure an array with `:tail`.
+
+```ruby
+clause(["Hello", [Fixnum, :tail]], proc { |string, number, tail_array| ...  })
+clause([Hash, [Fixnum, Fixnum :tail]], proc { |hash, number1, number2,  tail_array| ... })
 ```
 
 
