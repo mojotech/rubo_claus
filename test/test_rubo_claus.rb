@@ -70,6 +70,14 @@ class MyClass
       clause([[:any, :tail], Fixnum], proc { |_head, tail, sum| count(tail, sum + 1) })
     )
   end
+
+  define_function :count_with_private do
+    clauses(
+      clause([Array], proc { |array| count_with_private(array, 0) }),
+      p_clause([[], Fixnum], proc { |_array, sum| sum }),
+      p_clause([[:any, :tail], Fixnum], proc { |_head, tail, sum| count_with_private(tail, sum + 1) })
+    )
+  end
 end
 
 class MyClassTest < Minitest::Test
@@ -109,6 +117,12 @@ class MyClassTest < Minitest::Test
 
     assert_equal 3, k.count([1, 2, 3])
     assert_equal 1, k.count([1])
+
+    assert_equal 3, k.count_with_private([1, 2, 3])
+
+    assert_raises RuboClaus::NoPatternMatchError do
+      k.count_with_private([1, 2, 3], 3)
+    end
   end
 
   def test_shallow_hash_destructuring

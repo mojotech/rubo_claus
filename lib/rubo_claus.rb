@@ -3,6 +3,7 @@ require 'match'
 module RuboClaus
   include Match
   Clause = Struct.new(:args, :function)
+  PrivateClause = Struct.new(:args, :function)
   CatchAll = Struct.new(:proc)
 
   class NoPatternMatchError < NoMethodError; end
@@ -10,6 +11,7 @@ module RuboClaus
   module ClassMethods
     def define_function(symbol, &block)
       @function_name = symbol
+      @from_proc = false
       block.call
     end
 
@@ -17,9 +19,12 @@ module RuboClaus
       define_method(@function_name) do |*runtime_args|
         case matching_clause = find_matching_clause(klauses, runtime_args)
         when Clause
-          instance_exec *head_tail_handle(matching_clause.args, runtime_args), &matching_clause.function
+          execute(head_tail_handle(matching_clause.args, runtime_args), matching_clause.function)
+        when PrivateClause
+          raise NoPatternMatchError, "no pattern defined for: #{runtime_args}" unless @from_proc
+          execute(head_tail_handle(matching_clause.args, runtime_args), matching_clause.function)
         when CatchAll
-          instance_exec *runtime_args, &matching_clause.proc
+          execute(runtime_args, matching_clause.proc)
         else
           raise NoPatternMatchError, "no pattern defined for: #{runtime_args}"
         end
@@ -30,14 +35,25 @@ module RuboClaus
       Clause.new(args, function)
     end
 
+    def p_clause(args, function)
+      PrivateClause.new(args, function)
+    end
+
     def catch_all(_proc)
       CatchAll.new(_proc)
     end
   end
 
+  private def execute(args, proc)
+    @from_proc = true
+    method = instance_exec *args, &proc
+    @from_proc = false
+    method
+  end
+
   private def find_matching_clause(klauses, runtime_args)
     clause = klauses.find { |pattern| match?(pattern, runtime_args) }
-    return clause if clause.is_a?(Clause) || clause.is_a?(CatchAll)
+    return clause if [Clause, PrivateClause, CatchAll].include?(clause.class)
   end
 
   private def head_tail_handle(lhs, rhs)

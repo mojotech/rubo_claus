@@ -77,12 +77,13 @@ Below are the public API methods and their associated arguments.
 	* Block - a single block with a `clauses` method call
 * `clauses`
 	* N number of `clause` method calls and/or a single `catch_all` method call
-* `clause`
+* `clause` | `p_clause`
 	* Array - list of arguments to pattern match against
       * Keywords:
         * `:any` - among your arguments, `:any` represents that any data type will be accepted in its position.
         * `:tail` - given an array argument with defined "head" elements and `:tail` as the last element (such as `[String, String, :tail]`), this will destructure the head elements and make the tail an array of the non-head elements.
 	* Proc - method body to execute when this method is matched and executed
+    * Note on `p_clause` - only visible to other clauses in the function, and will return `NoPatternMatchError` if invoked with matching parameters external to the function. Ideally used when calling the function recursively with different arity than the public api to the method.
 * `catch_all`
 	* Proc - method body that will be executed if the arguments do not match any of the `clause` patterns defined
 
