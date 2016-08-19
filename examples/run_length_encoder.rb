@@ -40,6 +40,35 @@ class RunLengthEncoder
   end
 end
 
+class RLE
+  class << self
+    def encode(str)
+      encoder str.split(//)
+    end
+
+    def encoder(chars, encoded='', count=1)
+      return encoded if chars.length == 0
+      h, *tail = chars
+      if h == tail[0]
+        encoder(tail, encoded, count + 1)
+      else
+        encoder(tail, encoded + "#{count}#{h}")
+      end
+    end
+
+    def decode(str)
+      str.scan(/\d+[A-Z]|[A-Z]/).reduce("") do |acc, char|
+        if char.length > 1
+          count, letter = char.scan(/(\d+)([A-Z])/).flatten
+          acc + (letter * count.to_i)
+        else
+          acc + char
+        end
+      end
+    end
+  end
+end
+
 ###
 ### ELIXIR VERSION
 ###
