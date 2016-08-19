@@ -11,7 +11,7 @@
   </head>
   <body>
     <section class="page-header">
-      <h1 class="project-name">RuboClaus</h1><img src='images/santaicon.png'>
+      <h1 class="project-name">RuboClaus</h1>
       <h2 class="project-tagline">Ruby method pattern matching inspired by functional programming with Elixir and Erlang</h2>
       <a href="https://github.com/mojotech/rubo_claus" class="btn">View on GitHub</a>
       <a href="https://github.com/mojotech/rubo_claus/zipball/master" class="btn">Download .zip</a>
@@ -21,7 +21,7 @@
     <section class="main-content">
       <h1>
 <a id="ruboclaus" class="anchor" href="#ruboclaus" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>RuboClaus</h1>
-<code>gem install rubo_claus</code>
+
 <p>RuboClaus is an open source project that gives the Ruby developer a DSL to implement functions with multiple clauses and varying numbers of arguments on a pattern matching paradigm, inspired by functional programming in Elixir and Erlang.</p>
 
 <h4>
@@ -32,7 +32,7 @@
 <h3>
 <a id="rationale" class="anchor" href="#rationale" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Rationale</h3>
 
-<p>The beauty of multiple function clauses with pattern matching is fewer conditionals and fewer lines of unnecessary defensive logic. Focus on the happy path. Control types as they come in, and handle for edge cases with catch all clauses.</p>
+<p>The beauty of multiple function clauses with pattern matching is fewer conditionals and fewer lines of unnecessary defensive logic. Focus on the happy path. Control types as they come in, and handle for edge cases with catch all clauses. It does not work great for simple methods, like this:</p>
 
 <p>Ruby:</p>
 
@@ -45,14 +45,45 @@
 
 <div class="highlight highlight-source-ruby"><pre>define_function <span class="pl-c1">:add</span> <span class="pl-k">do</span>
   clauses(
-    clause([<span class="pl-c1">Fixnum</span>, <span class="pl-c1">Fixnum</span>], proc <span class="pl-k">do </span>|<span class="pl-smi">first</span>, <span class="pl-smi">second</span>|
-      first <span class="pl-k">+</span> second
-    <span class="pl-k">end</span>), <span class="pl-c"># This clause controls type and arity so that you can focus on elegant logic.</span>
+    clause([<span class="pl-c1">Fixnum</span>, <span class="pl-c1">Fixnum</span>], proc { |<span class="pl-smi">first</span>, <span class="pl-smi">second</span>| first <span class="pl-k">+</span> second }),
     catch_all(proc { <span class="pl-s"><span class="pl-pds">"</span>Please use numbers<span class="pl-pds">"</span></span> }
   )
 <span class="pl-k">end</span></pre></div>
 
-<p>You may think that this is cumbersome at first. But as soon as we add some complexity to the method, we can see how RuboClaus makes our code more extendible and maintainable.</p>
+<p>It is cumbersome for problems like <code>add</code>--in which case we don't recommend using it. But as soon as we add complexity that depends on parameter arity or type, we can see how RuboClaus makes our code more extendible and maintainable. For example:</p>
+
+<p>Ruby:</p>
+
+<div class="highlight highlight-source-ruby"><pre><span class="pl-k">def</span> <span class="pl-en">handle_response</span>(<span class="pl-smi">status</span>, <span class="pl-smi">has_body</span>, <span class="pl-smi">is_chunked</span>)
+  <span class="pl-k">if</span> status <span class="pl-k">==</span> <span class="pl-c1">200</span> <span class="pl-k">&amp;&amp;</span> has_body <span class="pl-k">&amp;&amp;</span> is_chunked
+    <span class="pl-c"># ...</span>
+  <span class="pl-k">else</span>
+    <span class="pl-k">if</span> status <span class="pl-k">==</span> <span class="pl-c1">200</span> <span class="pl-k">&amp;&amp;</span> has_body <span class="pl-k">&amp;&amp;</span> <span class="pl-k">!</span>is_chunked
+      <span class="pl-c"># ...</span>
+    <span class="pl-k">else</span>
+      <span class="pl-k">if</span> status <span class="pl-k">==</span> <span class="pl-c1">200</span> <span class="pl-k">&amp;&amp;</span> <span class="pl-k">!</span>has_body
+        <span class="pl-c"># ...</span>
+      <span class="pl-k">else</span>
+        <span class="pl-c"># ...</span>
+      <span class="pl-k">end</span>
+    <span class="pl-k">end</span>
+  <span class="pl-k">end</span>
+<span class="pl-k">end</span></pre></div>
+
+<p>Ruby with RuboClaus:</p>
+
+<div class="highlight highlight-source-ruby"><pre>define_function <span class="pl-c1">:handle_response</span> <span class="pl-k">do</span>
+  clauses(
+    clause([<span class="pl-c1">200</span>, <span class="pl-c1">true</span>, <span class="pl-c1">true</span>], proc { |<span class="pl-smi">status</span>, <span class="pl-smi">has_body</span>, <span class="pl-smi">is_chunked</span>| ... }),
+    clause([<span class="pl-c1">200</span>, <span class="pl-c1">true</span>, <span class="pl-c1">false</span>], proc { |<span class="pl-smi">status</span>, <span class="pl-smi">has_body</span>, <span class="pl-smi">is_chunked</span>| ... }),
+    clause([<span class="pl-c1">200</span>, <span class="pl-c1">false</span>], proc { |<span class="pl-smi">status</span>, <span class="pl-smi">has_body</span>| ... }),
+    catch_all(proc { return_error })
+  )
+<span class="pl-k">end</span></pre></div>
+
+<p><a href="https://www.reddit.com/r/elixir/comments/34jyto/what_are_the_benefits_of_pattern_matching_as/cqve33n">Credit</a></p>
+
+<p>To learn more about this style of programming read about <a href="https://en.wikipedia.org/wiki/Function_overloading">function overloading</a> and <a href="https://en.wikipedia.org/wiki/Pattern_matching">pattern matching</a>.</p>
 
 <h2>
 <a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h2>
@@ -136,8 +167,12 @@ clause([<span class="pl-c1">42</span>, <span class="pl-c1">:any</span>], proc {.
 <h2>
 <a id="todo" class="anchor" href="#todo" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TODO</h2>
 
-<p>[ ] Rename public API methods? <code>define_function</code> is awkward since Ruby uses the term <code>method</code> instead of <code>function</code>
-[ ] Add Benchmarks to see performance implications</p>
+<ul>
+<li>[ ] Rename public API methods? <code>define_function</code> is awkward since Ruby uses the term <code>method</code> instead of <code>function</code>
+</li>
+<li>[ ] Add Benchmarks to see performance implications</li>
+<li>[ ] Support private clauses to enforce a single entry point to a defined function</li>
+</ul>
 
 <hr>
 
@@ -146,6 +181,8 @@ clause([<span class="pl-c1">42</span>, <span class="pl-c1">:any</span>], proc {.
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/mojotech/rubo_claus">RuboClaus</a> is maintained by <a href="https://github.com/mojotech">mojotech</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
       </footer>
 
     </section>
