@@ -8,7 +8,7 @@ _RuboClaus is still in very early stage of development and thought process.  We 
 
 ### Rationale
 
-The beauty of multiple function clauses with pattern matching is fewer conditionals and fewer lines of unnecessary defensive logic. Focus on the happy path. Control types as they come in, and handle for edge cases with catch all clauses.
+The beauty of multiple function clauses with pattern matching is fewer conditionals and fewer lines of unnecessary defensive logic. Focus on the happy path. Control types as they come in, and handle for edge cases with catch all clauses. It does not work great for simple methods, like this:
 
 Ruby:
 
@@ -24,15 +24,49 @@ Ruby With RuboClaus:
 ```ruby
 define_function :add do
   clauses(
-    clause([Fixnum, Fixnum], proc do |first, second|
-      first + second
-    end), # This clause controls type and arity so that you can focus on elegant logic.
+    clause([Fixnum, Fixnum], proc { |first, second| first + second }),
     catch_all(proc { "Please use numbers" }
   )
 end
 ```
 
-You may think that this is cumbersome at first. But as soon as we add some complexity to the method, we can see how RuboClaus makes our code more extendible and maintainable.
+It is cumbersome for problems like `add`--in which case we don't recommend using it. But as soon as we add complexity that depends on parameter arity or type, we can see how RuboClaus makes our code more extendible and maintainable. For example:
+
+Ruby:
+
+```ruby
+def handle_response(status, has_body, is_chunked)
+  if status == 200 && has_body && is_chunked
+    # ...
+  else
+    if status == 200 && has_body && !is_chunked
+      # ...
+    else
+      if status == 200 && !has_body
+        # ...
+      else
+        # ...
+      end
+    end
+  end
+end
+```
+
+Ruby with RuboClaus:
+
+```ruby
+define_function :handle_response do
+  clauses(
+    clause([200, true, true], proc { |status, has_body, is_chunked| ... }),
+    clause([200, true, false], proc { |status, has_body, is_chunked| ... }),
+    clause([200, false], proc { |status, has_body| ... }),
+    catch_all(proc { return_error })
+  )
+end
+```
+[Credit](https://www.reddit.com/r/elixir/comments/34jyto/what_are_the_benefits_of_pattern_matching_as/cqve33n)
+
+To learn more about this style of programming read about [function overloading](https://en.wikipedia.org/wiki/Function_overloading) and [pattern matching](https://en.wikipedia.org/wiki/Pattern_matching).
 
 ## Usage
 
