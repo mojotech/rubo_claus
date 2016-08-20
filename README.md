@@ -142,12 +142,6 @@ Don't introduce unneeded external dependencies.
 
 Nothing else special to note for development.  Just add tests associated to any code changes and make sure they pass.
 
-## TODO
-
-- [ ] Rename public API methods? `define_function` is awkward since Ruby uses the term `method` instead of `function`
-- [ ] Add Benchmarks to see performance implications
-- [ ] Support private clauses to enforce a single entry point to a defined function
-
 ---
 
 [![Build Status](https://travis-ci.org/mojotech/rubo_claus.svg?branch=master)](https://travis-ci.org/mojotech/rubo_claus)
