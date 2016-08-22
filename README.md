@@ -25,7 +25,7 @@ Ruby With RuboClaus:
 define_function :add do
   clauses(
     clause([Fixnum, Fixnum], proc { |first, second| first + second }),
-    catch_all(proc { "Please use numbers" }
+    catch_all(proc { "Please use numbers" })
   )
 end
 ```
