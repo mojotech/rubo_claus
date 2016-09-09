@@ -2,6 +2,39 @@
 
 RuboClaus is an open source project that gives the Ruby developer a DSL to implement functions with multiple clauses and varying numbers of arguments on a pattern matching paradigm, inspired by functional programming in Elixir and Erlang.
 
+## Installation
+
+From the command line:
+```no-highlight
+gem install rubo_claus
+```
+
+In your `Gemfile`:
+```no-highlight
+gem 'rubo_claus', '~> 0.2.0'
+```
+
+Example Implementation:
+```ruby
+require 'rubo_claus'
+
+class WebServer
+  include RuboClaus
+
+  define_function :request do
+    clauses(
+      clause(['get', '/restaurants'], proc { |_verb, _path| restaurants_list  }),
+      clause(['post', '/restaurants', Hash], proc { |_verb, _path, params| create_restaurant(params) })
+    )
+  end
+end
+```
+
+Example Usage:
+```ruby
+web_server = WebServer.new
+web_server.request('get', '/restaurants') #=> restaurants_list
+```
 #### Note
 
 _RuboClaus is still in very early stage of development and thought process.  We are still treating this as a proof-of-concept and are still exploring the topic.  As such, we don't suggest you use this in any kind of production environment, without first looking at the library code and feeling comfortable with how it works.  And, if you would like to continue this thought experiment and provide feedback/suggestions/changes, we would love to hear it._
